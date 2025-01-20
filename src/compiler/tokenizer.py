@@ -1,35 +1,81 @@
+from dataclasses import dataclass
 import re
+from typing import Literal
+
+
+@dataclass(frozen=True)
+class Location:
+    column: int
+    line: int
+
+
+TokenType = Literal["int_literal", "identifier"]
+
+
+@dataclass(frozen=True)
+class Token:
+    type: TokenType
+    text: str
+    location: Location
+
 
 # this still allows things like test- to pass as identifiers
-def tokenize(source_code: str) -> list[str]:
+def tokenize(source_code: str) -> list[Token]:
+    newline_re = re.compile(r"\n")
     whitespace_re = re.compile(r"\s+")
     # maybe \b shouldnt be at the start? might break something later
     identifier_re = re.compile(r"\b[A-Za-z_][A-Za-z_0-9]*")
     integer_literal_re = re.compile(r"[0-9]+")
 
-    tokens: list[str] = []
     position = 0
+    # the current column is position - column_start_pos
+    # column_start_pos == where column 0 is on the current line, as a position value
+    column_start_pos = 0
+    line = 0
+
+    tokens: list[Token] = []
+
+    def regexMatch(pattern: re.Pattern[str], type: TokenType) -> bool:
+        nonlocal position
+
+        match = pattern.match(source_code, position)
+        if match is not None:
+            tokens.append(
+                Token(
+                    type=type,
+                    text=source_code[position : match.end()],
+                    location=Location(column=position - column_start_pos, line=line),
+                )
+            )
+            position = match.end()
+            return True
+        return False
 
     while position < len(source_code):
-        whitespace_match = whitespace_re.match(source_code, position)
-        identifier_match = identifier_re.match(source_code, position)
-        integer_literal_match = integer_literal_re.match(source_code, position)
 
-
-        if whitespace_match is not None:
-            position = whitespace_match.end()
+        match = newline_re.match(source_code, position)
+        if match is not None:
+            position = match.end()
+            column_start_pos = match.end()
+            line += 1
             continue
 
-        if identifier_match is not None:
-            tokens.append(source_code[position:identifier_match.end()])
-            position = identifier_match.end()
+        match = whitespace_re.match(source_code, position)
+        if match is not None:
+            position = match.end()
             continue
 
-        if integer_literal_match is not None:
-            tokens.append(source_code[position:integer_literal_match.end()])
-            position = integer_literal_match.end()
+        if regexMatch(identifier_re, "identifier"):
             continue
 
-        raise Exception("No match found, position: ", position, ", source code at position: ", source_code[position])
+        if regexMatch(integer_literal_re, "int_literal"):
+            continue
+
+        raise Exception(
+            "No match found, position: ",
+            position,
+            ", source code at position: ",
+            source_code[position],
+        )
 
     return tokens
