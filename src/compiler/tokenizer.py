@@ -22,7 +22,7 @@ class Token:
 # this still allows things like test- to pass as identifiers
 def tokenize(source_code: str) -> list[Token]:
     newline_re = re.compile(r"\n")
-    whitespace_re = re.compile(r"\s+")
+    whitespace_re = re.compile(r"\s")
     # maybe \b shouldnt be at the start? might break something later
     identifier_re = re.compile(r"\b[A-Za-z_][A-Za-z_0-9]*")
     integer_literal_re = re.compile(r"[0-9]+")

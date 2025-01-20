@@ -39,3 +39,37 @@ def test_tokenizer_recognizes_multiple_integer_literals() -> None:
         Token(type="int_literal", text="123", location=L),
         Token(type="int_literal", text="555", location=L),
     ]
+
+
+### LOCATION CLASS (when using tokenizer) ###
+def test_tokenizer_reads_line_correctly() -> None:
+    assert tokenize("\n1") == [
+        Token(type="int_literal", text="1", location=Location(column=0, line=1))
+    ]
+
+    assert tokenize("\n\n1") == [
+        Token(type="int_literal", text="1", location=Location(column=0, line=2))
+    ]
+
+
+def test_tokenizer_reads_column_correctly() -> None:
+    assert tokenize("  1") == [
+        Token(type="int_literal", text="1", location=Location(2, 0))
+    ]
+
+
+def test_tokenizer_reads_column_on_diff_line_correctly() -> None:
+    assert tokenize("\n  1") == [
+        Token(type="int_literal", text="1", location=Location(2, 1))
+    ]
+
+    assert tokenize("\n\n   1") == [
+        Token(type="int_literal", text="1", location=Location(3, 2))
+    ]
+
+
+def test_tokenizer_reads_locations_of_multiple_tokens() -> None:
+    assert tokenize("  \n\n 5 \n    3") == [
+        Token(type="int_literal", text="5", location=Location(1, 2)),
+        Token(type="int_literal", text="3", location=Location(4, 3)),
+    ]
