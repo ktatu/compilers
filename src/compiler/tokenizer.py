@@ -9,7 +9,7 @@ class Location:
     line: int
 
 
-TokenType = Literal["int_literal", "identifier"]
+TokenType = Literal["int_literal", "identifier", "operator", "punctuation"]
 
 
 @dataclass(frozen=True)
@@ -19,13 +19,17 @@ class Token:
     location: Location
 
 
+# Operators: +, -, *, /, =, ==, !=, <, <=, >, >=
 # this still allows things like test- to pass as identifiers
 def tokenize(source_code: str) -> list[Token]:
     newline_re = re.compile(r"\n")
     whitespace_re = re.compile(r"\s")
+    comment_re = re.compile(r"(//|#).*\n")
     # maybe \b shouldnt be at the start? might break something later
     identifier_re = re.compile(r"\b[A-Za-z_][A-Za-z_0-9]*")
     integer_literal_re = re.compile(r"[0-9]+")
+    operator_re = re.compile(r"(==|<=|>=|!=|\+|-|\*|/|=|>|<)")
+    punctuation_re = re.compile(r"[(){},;]")
 
     position = 0
     # the current column is position - column_start_pos
@@ -53,6 +57,13 @@ def tokenize(source_code: str) -> list[Token]:
 
     while position < len(source_code):
 
+        match = comment_re.match(source_code, position)
+        if match is not None:
+            position = match.end()
+            column_start_pos = match.end()
+            line += 1
+            continue
+
         match = newline_re.match(source_code, position)
         if match is not None:
             position = match.end()
@@ -69,6 +80,12 @@ def tokenize(source_code: str) -> list[Token]:
             continue
 
         if regexMatch(integer_literal_re, "int_literal"):
+            continue
+
+        if regexMatch(operator_re, "operator"):
+            continue
+
+        if regexMatch(punctuation_re, "punctuation"):
             continue
 
         raise Exception(

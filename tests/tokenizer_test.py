@@ -73,3 +73,41 @@ def test_tokenizer_reads_locations_of_multiple_tokens() -> None:
         Token(type="int_literal", text="5", location=Location(1, 2)),
         Token(type="int_literal", text="3", location=Location(4, 3)),
     ]
+
+
+### OPERATORS ###
+def test_tokenizer_recognizes_operators() -> None:
+    assert tokenize("+ - * / = == != < <= > >=") == [
+        Token(type="operator", text="+", location=L),
+        Token(type="operator", text="-", location=L),
+        Token(type="operator", text="*", location=L),
+        Token(type="operator", text="/", location=L),
+        Token(type="operator", text="=", location=L),
+        Token(type="operator", text="==", location=L),
+        Token(type="operator", text="!=", location=L),
+        Token(type="operator", text="<", location=L),
+        Token(type="operator", text="<=", location=L),
+        Token(type="operator", text=">", location=L),
+        Token(type="operator", text=">=", location=L),
+    ]
+
+
+### PUNCTUATION ###
+def test_tokenizer_recognizes_puncuation() -> None:
+    assert tokenize(r"{(,;)}") == [
+        Token(type="punctuation", text=r"{", location=L),
+        Token(type="punctuation", text=r"(", location=L),
+        Token(type="punctuation", text=r",", location=L),
+        Token(type="punctuation", text=r";", location=L),
+        Token(type="punctuation", text=r")", location=L),
+        Token(type="punctuation", text=r"}", location=L),
+    ]
+
+
+### COMMENTS ###
+def test_tokenizer_skips_over_comments() -> None:
+    assert tokenize("// test\n") == []
+    assert tokenize("# test\n") == []
+    assert tokenize("# 1\n// 2\n 3") == [
+        Token(type="int_literal", text="3", location=L)
+    ]
