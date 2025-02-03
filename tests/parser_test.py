@@ -133,7 +133,21 @@ def test_parser_empty_tokens_list_raises_exception() -> None:
 
 
 ### UNPARSEABLE ###
-def test_parser_fails_to_parse_two_identifiers_next_to_each_other() -> None:
+def test_parser_fails_to_parse_two_identifiers_next_to_each_other1() -> None:
+    with pytest.raises(Exception) as exception:
+        parse(
+            [
+                Token("identifier", "a", L),
+                Token("identifier", "b", L),
+                Token("operator", "+", L),
+                Token("identifier", "c", L),
+            ]
+        )
+
+    assert str(exception.value) == "two identifiers next to each other in token list"
+
+
+def test_parser_fails_to_parse_two_identifiers_next_to_each_other2() -> None:
     with pytest.raises(Exception) as exception:
         parse(
             [
@@ -144,4 +158,32 @@ def test_parser_fails_to_parse_two_identifiers_next_to_each_other() -> None:
             ]
         )
 
-    assert str(exception.value) == "attempting to parse an empty token list"
+    assert str(exception.value) == "two identifiers next to each other in token list"
+
+
+def test_parser_fails_when_left_parenthesis_missing() -> None:
+    with pytest.raises(Exception) as exception:
+        parse(
+            [
+                Token("identifier", "a", L),
+                Token("operator", "+", L),
+                Token("identifier", "b", L),
+                Token("punctuation", ")", L),
+            ]
+        )
+
+    assert str(exception.value) == "unexpected token at the end of token list: )"
+
+
+def test_parser_fails_when_right_parenthesis_missing() -> None:
+    with pytest.raises(Exception) as exception:
+        parse(
+            [
+                Token("punctuation", "(", L),
+                Token("identifier", "a", L),
+                Token("operator", "+", L),
+                Token("identifier", "b", L),
+            ]
+        )
+
+    assert str(exception.value) == f'{L}: expected ")"'

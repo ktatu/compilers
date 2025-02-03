@@ -47,22 +47,32 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_expression() -> ast.Expression:
         # Same as before
         left = parse_term()
+
         while peek().text in ["+", "-"]:
             operator_token = consume()
             operator = operator_token.text
             right = parse_term()
             left = ast.BinaryOp(left, operator, right)
+
         return left
 
+    # term == identifier or integer literal
     def parse_term() -> ast.Expression:
         # Same structure as in 'parse_expression',
         # but the operators and function calls differ.
         left = parse_factor()
+
         while peek().text in ["*", "/"]:
             operator_token = consume()
             operator = operator_token.text
             right = parse_factor()
             left = ast.BinaryOp(left, operator, right)
+
+        # anything that should not come right after a term should cause an error
+        next_token = peek()
+        if next_token.type == "identifier":
+            raise Exception("two identifiers next to each other in token list")
+
         return left
 
     def parse_factor() -> ast.Expression:
@@ -85,6 +95,11 @@ def parse(tokens: list[Token]) -> ast.Expression:
         consume(")")
         return expr
 
-    return_val = parse_expression()
-    print(return_val)
-    return return_val
+    parsed_ast = parse_expression()
+
+    # last token always has to be end, otherwise there's garbage that went unhandled
+    last_token = peek()
+    if last_token.type != "end":
+        raise Exception(f"unexpected token at the end of token list: {last_token.text}")
+
+    return parsed_ast
