@@ -9,7 +9,7 @@ class Location:
     line: int
 
 
-TokenType = Literal["int_literal", "identifier", "operator", "punctuation"]
+TokenType = Literal["int_literal", "identifier", "operator", "punctuation", "end"]
 
 
 @dataclass(frozen=True)
@@ -94,5 +94,7 @@ def tokenize(source_code: str) -> list[Token]:
             ", source code at position: ",
             source_code[position],
         )
+
+    # tokens.append(Token("end", "", Location(position - column_start_pos, line)))
 
     return tokens
