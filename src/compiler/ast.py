@@ -30,3 +30,9 @@ class Conditional(Expression):
     cond_if: Expression
     then: Expression
     cond_else: Expression | None = None
+
+
+@dataclass
+class Function(Expression):
+    name: Identifier
+    arguments: list[Expression]

@@ -186,6 +186,49 @@ def test_parser_parses_nested_conditionals() -> None:
     )
 
 
+### FUNCTION ###
+def test_parser_parses_function() -> None:
+    assert parse(
+        [
+            Token("identifier", "f", L),
+            Token("punctuation", "(", L),
+            Token("identifier", "a", L),
+            Token("punctuation", ")", L),
+        ]
+    ) == ast.Function(ast.Identifier("f"), [ast.Identifier("a")])
+
+
+def test_parser_parses_function_with_multiple_args() -> None:
+    assert parse(
+        [
+            Token("identifier", "f", L),
+            Token("punctuation", "(", L),
+            Token("identifier", "a", L),
+            Token("punctuation", ",", L),
+            Token("identifier", "b", L),
+            Token("punctuation", ")", L),
+        ]
+    ) == ast.Function(ast.Identifier("f"), [ast.Identifier("a"), ast.Identifier("b")])
+
+
+def test_parser_parses_expressions_as_function_args() -> None:
+    assert parse(
+        [
+            Token("identifier", "f", L),
+            Token("punctuation", "(", L),
+            Token("identifier", "a", L),
+            Token("operator", "+", L),
+            Token("identifier", "b", L),
+            Token("punctuation", ",", L),
+            Token("int_literal", "1", L),
+            Token("punctuation", ")", L),
+        ]
+    ) == ast.Function(
+        ast.Identifier("f"),
+        [ast.BinaryOp(ast.Identifier("a"), "+", ast.Identifier("b")), ast.Literal(1)],
+    )
+
+
 ### EMPTY TOKEN LIST ###
 def test_parser_empty_tokens_list_raises_exception() -> None:
     with pytest.raises(Exception) as exception:

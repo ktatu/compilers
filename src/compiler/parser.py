@@ -37,10 +37,13 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         return ast.Literal(int(token.text))
 
-    def parse_identifier() -> ast.Identifier:
+    def parse_identifier() -> ast.Identifier | ast.Function:
         if peek().type != "identifier":
             raise Exception(f"{peek().location}: expected an identifier")
         token = consume()
+
+        if peek().text == "(":
+            return parse_function(token.text)
 
         return ast.Identifier(str(token.text))
 
@@ -68,14 +71,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
             right = parse_factor()
             left = ast.BinaryOp(left, operator, right)
 
-        # anything that should not come right after a term should cause an error
-        # tämä on ongelma, koska pitää sallia esim. if a then b else c
-        # voidaan tarkastaa onko next_token tunnettujen identifereiden listassa?
-        """
-        next_token = peek()
-        if next_token.type == "identifier":
-            raise Exception("two identifiers next to each other in token list")
-        """
         return left
 
     def parse_factor() -> ast.Expression:
@@ -92,7 +87,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
                 f'{peek().location}: expected "(", "if", an integer literal or an identifier'
             )
 
-    def parse_conditional() -> ast.Expression:
+    def parse_conditional() -> ast.Conditional:
         conditional: ast.Conditional = ast.Conditional(
             consume_and_parse("if"), consume_and_parse("then")
         )
@@ -106,6 +101,24 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def consume_and_parse(keyword_to_consume: str) -> ast.Expression:
         consume(keyword_to_consume)
         return parse_expression()
+
+    def parse_function(function_name: str) -> ast.Function:
+        args: list[ast.Expression] = []
+
+        consume("(")
+
+        first_arg = parse_expression()
+        args.append(first_arg)
+
+        while peek().text == ",":
+            consume(",")
+
+            arg = parse_expression()
+            args.append(arg)
+
+        consume(")")
+
+        return ast.Function(ast.Identifier(function_name), args)
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")
