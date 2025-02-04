@@ -69,23 +69,43 @@ def parse(tokens: list[Token]) -> ast.Expression:
             left = ast.BinaryOp(left, operator, right)
 
         # anything that should not come right after a term should cause an error
+        # tämä on ongelma, koska pitää sallia esim. if a then b else c
+        # voidaan tarkastaa onko next_token tunnettujen identifereiden listassa?
+        """
         next_token = peek()
         if next_token.type == "identifier":
             raise Exception("two identifiers next to each other in token list")
-
+        """
         return left
 
     def parse_factor() -> ast.Expression:
         if peek().text == "(":
             return parse_parenthesized()
+        elif peek().text == "if":
+            return parse_conditional()
         elif peek().type == "int_literal":
             return parse_int_literal()
         elif peek().type == "identifier":
             return parse_identifier()
         else:
             raise Exception(
-                f'{peek().location}: expected "(", an integer literal or an identifier'
+                f'{peek().location}: expected "(", "if", an integer literal or an identifier'
             )
+
+    def parse_conditional() -> ast.Expression:
+        conditional: ast.Conditional = ast.Conditional(
+            consume_and_parse("if"), consume_and_parse("then")
+        )
+
+        if peek().text == "else":
+            consume("else")
+            conditional.cond_else = parse_expression()
+
+        return conditional
+
+    def consume_and_parse(keyword_to_consume: str) -> ast.Expression:
+        consume(keyword_to_consume)
+        return parse_expression()
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")
@@ -97,9 +117,12 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
     parsed_ast = parse_expression()
 
-    # last token always has to be end, otherwise there's garbage that went unhandled
+    # last token always has to be end, otherwise there's tokens that went unhandled
+    # this also handles cases like a b + c, not only garbage tokens at the end of list
     last_token = peek()
     if last_token.type != "end":
-        raise Exception(f"unexpected token at the end of token list: {last_token.text}")
+        raise Exception(
+            f"{peek().location}: parsing ended at an unexpected token: {last_token.text}"
+        )
 
     return parsed_ast

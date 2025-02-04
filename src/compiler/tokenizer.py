@@ -95,6 +95,4 @@ def tokenize(source_code: str) -> list[Token]:
             source_code[position],
         )
 
-    # tokens.append(Token("end", "", Location(position - column_start_pos, line)))
-
     return tokens
