@@ -65,7 +65,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         # but the operators and function calls differ.
         left = parse_factor()
 
-        while peek().text in ["*", "/"]:
+        while peek().text in ["*", "/", "%"]:
             operator_token = consume()
             operator = operator_token.text
             right = parse_factor()
@@ -82,10 +82,20 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_int_literal()
         elif peek().type == "identifier":
             return parse_identifier()
+        # is this the wrong place?
+        # other option: parse_term calls parse_operation that calls parse_factor
+        elif peek().text in ["not", "-"]:
+            return parse_unary_operation()
         else:
             raise Exception(
                 f'{peek().location}: expected "(", "if", an integer literal or an identifier'
             )
+
+    def parse_unary_operation() -> ast.UnaryOp:
+        unary_operator = consume().text
+        expr = parse_expression()
+
+        return ast.UnaryOp(unary_operator, expr)
 
     def parse_conditional() -> ast.Conditional:
         conditional: ast.Conditional = ast.Conditional(

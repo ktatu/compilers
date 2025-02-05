@@ -40,7 +40,7 @@ def test_parser_parses_basic_substraction() -> None:
     ) == ast.BinaryOp(ast.Literal(1), "-", ast.Literal(2))
 
 
-### * / ###
+### * / % ###
 def test_parser_parses_basic_multiplication() -> None:
     assert parse(
         [
@@ -61,6 +61,16 @@ def test_parser_parses_basic_division() -> None:
     ) == ast.BinaryOp(ast.Literal(1), "/", ast.Literal(2))
 
 
+def test_parser_parses_remainder_operation() -> None:
+    assert parse(
+        [
+            Token("int_literal", "1", L),
+            Token("operator", "%", L),
+            Token("int_literal", "2", L),
+        ]
+    ) == ast.BinaryOp(ast.Literal(1), "%", ast.Literal(2))
+
+
 def test_parser_parses_parses_multiplication_and_division() -> None:
     assert parse(
         [
@@ -73,6 +83,29 @@ def test_parser_parses_parses_multiplication_and_division() -> None:
     ) == ast.BinaryOp(
         (ast.BinaryOp(ast.Literal(1), "/", ast.Literal(2))), "*", ast.Literal(3)
     )
+
+
+## UNARY OPERATIONS ###
+def test_parser_parses_unary_not() -> None:
+    assert parse(
+        [Token("operator", "not", L), Token("identifier", "a", L)]
+    ) == ast.UnaryOp("not", ast.Identifier("a"))
+
+
+def test_parser_parses_unary_minus() -> None:
+    assert parse(
+        [Token("operator", "-", L), Token("identifier", "a", L)]
+    ) == ast.UnaryOp("-", ast.Identifier("a"))
+
+
+def test_parser_parses_nested_unaries() -> None:
+    assert parse(
+        [
+            Token("operator", "-", L),
+            Token("operator", "not", L),
+            Token("identifier", "a", L),
+        ]
+    ) == ast.UnaryOp("-", ast.UnaryOp("not", ast.Identifier("a")))
 
 
 ### PUNCTUATION

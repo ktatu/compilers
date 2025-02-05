@@ -26,6 +26,12 @@ class BinaryOp(Expression):
 
 
 @dataclass
+class UnaryOp(Expression):
+    op: str
+    right: Expression
+
+
+@dataclass
 class Conditional(Expression):
     cond_if: Expression
     then: Expression
@@ -34,5 +40,6 @@ class Conditional(Expression):
 
 @dataclass
 class Function(Expression):
+    # maybe this should just be str?
     name: Identifier
     arguments: list[Expression]
