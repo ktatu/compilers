@@ -48,7 +48,65 @@ def parse(tokens: list[Token]) -> ast.Expression:
         return ast.Identifier(str(token.text))
 
     def parse_expression() -> ast.Expression:
-        # Same as before
+        return parse_assignment()
+
+    def parse_assignment() -> ast.Expression:
+        left = parse_or()
+
+        if peek().text == "=":
+            operator_token = consume()
+            operator = operator_token.text
+
+            right = parse_assignment()
+            left = ast.BinaryOp(left, operator, right)
+
+        return left
+
+    def parse_or() -> ast.Expression:
+        left = parse_and()
+
+        while peek().text == "and":
+            operator_token = consume()
+            operator = operator_token.text
+            right = parse_and()
+            left = ast.BinaryOp(left, operator, right)
+
+        return left
+
+    def parse_and() -> ast.Expression:
+        left = parse_equality()
+
+        while peek().text == "and":
+            operator_token = consume()
+            operator = operator_token.text
+            right = parse_equality()
+            left = ast.BinaryOp(left, operator, right)
+
+        return left
+
+    def parse_equality() -> ast.Expression:
+        left = parse_comparison()
+
+        while peek().text in ["!=", "=="]:
+            operator_token = consume()
+            operator = operator_token.text
+            right = parse_comparison()
+            left = ast.BinaryOp(left, operator, right)
+
+        return left
+
+    def parse_comparison() -> ast.Expression:
+        left = parse_arithmetic()
+
+        while peek().text in ["<", "<=", ">", ">="]:
+            operator_token = consume()
+            operator = operator_token.text
+            right = parse_arithmetic()
+            left = ast.BinaryOp(left, operator, right)
+
+        return left
+
+    def parse_arithmetic() -> ast.Expression:
         left = parse_term()
 
         while peek().text in ["+", "-"]:
@@ -59,7 +117,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         return left
 
-    # term == identifier or integer literal
     def parse_term() -> ast.Expression:
         # Same structure as in 'parse_expression',
         # but the operators and function calls differ.
@@ -82,7 +139,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_int_literal()
         elif peek().type == "identifier":
             return parse_identifier()
-        # is this the wrong place?
+        # should be above parse_factor in precedence, but does having it here cause anything?
         # other option: parse_term calls parse_operation that calls parse_factor
         elif peek().text in ["not", "-"]:
             return parse_unary_operation()

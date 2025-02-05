@@ -1,0 +1,103 @@
+    def parse_expression() -> ast.Expression:
+        left_associative_binary_operators = [
+            ["and"],
+            ["+", "-"],
+            ["*", "/", "%"],
+        ]
+
+        left = None
+        precedence_level = 0
+
+        while (
+            precedence_level < len(left_associative_binary_operators)
+            and peek().type != "end"
+        ):
+            left = parse_pre_level(left_associative_binary_operators, precedence_level)
+            precedence_level += 1
+
+        return left
+
+    def parse_pre_level(
+        operators: list[list[str]], precedence_level: int
+    ) -> ast.Expression:
+        current_level_operators = operators[precedence_level]
+        left = None
+
+        if precedence_level == len(operators) - 1:
+            left = parse_factor()
+        else:
+            left = parse_pre_level(operators, precedence_level + 1)
+
+        while (
+            peek().text in current_level_operators[precedence_level]
+            and peek().type != "end"
+        ):
+            operator_token = consume()
+            operator = operator_token.text
+
+            if precedence_level == len(operators) - 1:
+                right = parse_factor()
+                left = ast.BinaryOp(left, operator, right)
+            else:
+                right = parse_pre_level(operators, precedence_level + 1)
+                left = ast.BinaryOp(left, operator, right)
+
+        return left
+
+    ### ###
+
+    # tämänhetkinen ongelma: tehdään työtä parse_precedencellä, vaikka ei olisi havaittu oikeaa tokenia
+    # parse_expressionissa apufunktion kutsu pitäisi tapahtua vain,
+    # jos havaitaan precedence_levelin token
+    # eli: while peek() homma parse_expressioniin
+
+    # tämä hajoaa precedence_level 1, koska ei löydy käyttöä tokenille "and"
+    # ehkä lähestymistapa on väärä: pitäisi edetä listassa alhaalta ylöspäin
+    def parse_expression2() -> ast.Expression:
+        left_associative_binary_operators = [
+            ["and"],
+            ["+", "-"],
+            ["*", "/", "%"],
+        ]
+
+        left = None
+        precedence_level = len(left_associative_binary_operators) - 1
+
+        while precedence_level >= 0:
+            left = parse_binaryop_precedence_level(
+                left_associative_binary_operators, precedence_level
+            )
+
+            precedence_level -= 1
+
+        return left
+
+    def parse_binaryop_precedence_level(
+        operators: list[list[str]], precedence_level: int
+    ) -> ast.Expression:
+        current_level_operators = operators[precedence_level]
+
+        # SHOULD NEVER DO PARSE FACTOR HERE
+        # IT IS ONLY SAFE TO DO IT ONCE (ASSUMING THAT TOKENS ARE VALID)
+        # AND THIS CALLS IT HOWEVER MANY TIMES
+        # left = parse_factor()
+
+        left = None
+
+        if precedence_level == len(operators) - 1:
+            left = parse_factor()
+        else:
+            left = parse_binaryop_precedence_level(operators, precedence_level + 1)
+
+        while peek().text in current_level_operators[precedence_level]:
+            operator_token = consume()
+            operator = operator_token.text
+
+            if precedence_level == len(operators) - 1:
+                right = parse_factor()
+                left = ast.BinaryOp(left, operator, right)
+            else:
+                right = parse_binaryop_precedence_level(operators, precedence_level + 1)
+                left = ast.BinaryOp(left, operator, right)
+
+        return left

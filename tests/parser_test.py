@@ -85,6 +85,155 @@ def test_parser_parses_parses_multiplication_and_division() -> None:
     )
 
 
+### < > <= >= ###
+def test_parser_parses_basic_comparison_operations() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "<", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), "<", ast.Identifier("b"))
+
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "<=", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), "<=", ast.Identifier("b"))
+
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", ">", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), ">", ast.Identifier("b"))
+
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", ">=", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), ">=", ast.Identifier("b"))
+
+
+def test_parser_parses_multiple_comparison_operations() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "<", L),
+            Token("identifier", "b", L),
+            Token("operator", ">", L),
+            Token("identifier", "c", L),
+        ]
+    ) == ast.BinaryOp(
+        ast.BinaryOp(ast.Identifier("a"), "<", ast.Identifier("b")),
+        ">",
+        ast.Identifier("c"),
+    )
+
+
+def test_parser_parses_comparison_operators_with_parentheses() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "<=", L),
+            Token("punctuation", "(", L),
+            Token("int_literal", "1", L),
+            Token("operator", "+", L),
+            Token("int_literal", "2", L),
+            Token("punctuation", ")", L),
+            Token("operator", ">", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(
+        ast.BinaryOp(
+            ast.Identifier("a"), "<=", ast.BinaryOp(ast.Literal(1), "+", ast.Literal(2))
+        ),
+        ">",
+        ast.Identifier("b"),
+    )
+
+
+### = (assignment) ###
+def test_parser_parses_basic_assignment() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "=", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), "=", ast.Identifier("b"))
+
+
+def test_parser_parses_multiple_assignments() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "=", L),
+            Token("identifier", "b", L),
+            Token("operator", "=", L),
+            Token("identifier", "c", L),
+        ]
+    ) == ast.BinaryOp(
+        ast.Identifier("a"),
+        "=",
+        ast.BinaryOp(ast.Identifier("b"), "=", ast.Identifier("c")),
+    )
+
+
+### != == ###
+def test_parser_parses_basic_equality_operation() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "==", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), "==", ast.Identifier("b"))
+
+
+def test_parser_parses_basic_not_equal_operation() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "!=", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), "!=", ast.Identifier("b"))
+
+
+### and ###
+def test_parser_parses_basic_and_operation() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "and", L),
+            Token("identifier", "b", L),
+        ]
+    ) == ast.BinaryOp(ast.Identifier("a"), "and", ast.Identifier("b"))
+
+
+def test_parser_parses_basic_and_operation2() -> None:
+
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("operator", "and", L),
+            Token("identifier", "b", L),
+            Token("operator", "+", L),
+            Token("identifier", "c", L),
+        ]
+    ) == ast.BinaryOp(
+        ast.Identifier("a"),
+        "and",
+        ast.BinaryOp(ast.Identifier("b"), "+", ast.Identifier("c")),
+    )
+
+
 ## UNARY OPERATIONS ###
 def test_parser_parses_unary_not() -> None:
     assert parse(
@@ -106,6 +255,19 @@ def test_parser_parses_nested_unaries() -> None:
             Token("identifier", "a", L),
         ]
     ) == ast.UnaryOp("-", ast.UnaryOp("not", ast.Identifier("a")))
+
+
+def test_parser_parses_unary_with_parentheses() -> None:
+    assert parse(
+        [
+            Token("operator", "not", L),
+            Token("punctuation", "(", L),
+            Token("int_literal", "1", L),
+            Token("operator", "+", L),
+            Token("int_literal", "2", L),
+            Token("punctuation", ")", L),
+        ]
+    ) == ast.UnaryOp("not", ast.BinaryOp(ast.Literal(1), "+", ast.Literal(2)))
 
 
 ### PUNCTUATION
