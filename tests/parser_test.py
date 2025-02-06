@@ -462,6 +462,96 @@ def test_parser_fails_to_parse_block_with_missing_semicolon() -> None:
     assert str(exception.value) == f'{L}: expected "}}"'
 
 
+### VARIABLE DECLARATION ###
+def test_parser_parses_basic_variable_declaration() -> None:
+    assert parse(
+        [
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("int_literal", "1", L),
+        ]
+    ) == ast.VariableDeclaration(ast.Identifier("x"), ast.Literal(1))
+
+    assert parse(
+        [
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("int_literal", "1", L),
+            Token("operator", "+", L),
+            Token("int_literal", "2", L),
+        ]
+    ) == ast.VariableDeclaration(
+        ast.Identifier("x"), ast.BinaryOp(ast.Literal(1), "+", ast.Literal(2))
+    )
+
+
+def test_parser_parses_var_declaration_inside_block_top_level() -> None:
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("int_literal", "1", L),
+            Token("punctuation", ";", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block(
+        [
+            ast.VariableDeclaration(ast.Identifier("x"), ast.Literal(1)),
+        ],
+        ast.Literal(None),
+    )
+
+
+def test_parser_parses_multiple_var_declarations_in_different_block_top_levels() -> (
+    None
+):
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("int_literal", "1", L),
+            Token("punctuation", ";", L),
+            Token("identifier", "var", L),
+            Token("identifier", "y", L),
+            Token("operator", "=", L),
+            Token("identifier", "a", L),
+            Token("punctuation", ";", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block(
+        [
+            ast.VariableDeclaration(ast.Identifier("x"), ast.Literal(1)),
+            ast.VariableDeclaration(ast.Identifier("y"), ast.Identifier("a")),
+        ],
+        ast.Literal(None),
+    )
+
+
+def test_parser_fails_when_var_declaration_not_in_top_level() -> None:
+    with pytest.raises(Exception) as exception:
+        parse(
+            [
+                Token("int_literal", "1", L),
+                Token("operator", "+", L),
+                Token("identifier", "var", L),
+                Token("identifier", "x", L),
+                Token("operator", "=", L),
+                Token("int_literal", "1", L),
+            ]
+        )
+
+    assert (
+        str(exception.value)
+        == f"{L}: attempting to declare a variable outside top-level scope"
+    )
+
+
 ### EMPTY TOKEN LIST ###
 def test_parser_empty_tokens_list_raises_exception() -> None:
     with pytest.raises(Exception) as exception:

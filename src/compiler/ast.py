@@ -47,5 +47,11 @@ class Function(Expression):
 
 @dataclass
 class Block(Expression):
-    expressions: list[Expression]
+    statements: list[Expression]
     result: Expression | Literal = field(default_factory=lambda: Literal(None))
+
+
+@dataclass
+class VariableDeclaration(Expression):
+    name: Identifier
+    initialize: Expression

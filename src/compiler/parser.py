@@ -40,6 +40,11 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_identifier() -> ast.Identifier | ast.Function:
         if peek().type != "identifier":
             raise Exception(f"{peek().location}: expected an identifier")
+        if peek().text == "var":
+            raise Exception(
+                f"{peek().location}: attempting to declare a variable outside top-level scope"
+            )
+
         token = consume()
 
         if peek().text == "(":
@@ -47,7 +52,10 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         return ast.Identifier(str(token.text))
 
-    def parse_expression() -> ast.Expression:
+    def parse_expression(allow_var_parsing=False) -> ast.Expression:
+        if allow_var_parsing and peek().text == "var":
+            return parse_variable_declaration()
+
         return parse_assignment()
 
     def parse_assignment() -> ast.Expression:
@@ -146,8 +154,12 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_parenthesized()
         elif peek().text == "if":
             return parse_conditional()
+        # elif peek().text == "var":
+        #   return parse_variable_declaration()
         elif peek().type == "int_literal":
             return parse_int_literal()
+        # all identifiers are treated the same in the tokenizer
+        # therefore known identifiers (while, var, ...) need to be handled before this
         elif peek().type == "identifier":
             return parse_identifier()
         # should be above parse_factor in precedence, but does having it here cause anything?
@@ -209,7 +221,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         expressions: list[ast.Expression] = []
         consume("{")
 
-        first_expr = parse_expression()
+        first_expr = parse_expression(True)
         expressions.append(first_expr)
 
         no_result_expr = False
@@ -219,7 +231,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
                 no_result_expr = True
                 break
 
-            expr = parse_expression()
+            expr = parse_expression(True)
             expressions.append(expr)
 
         consume("}")
@@ -230,7 +242,15 @@ def parse(tokens: list[Token]) -> ast.Expression:
         result = expressions.pop()
         return ast.Block(expressions, result)
 
-    parsed_ast = parse_expression()
+    def parse_variable_declaration() -> ast.Expression:
+        consume("var")
+        var_name: ast.Identifier = parse_identifier()
+        consume("=")
+        expr = parse_expression()
+
+        return ast.VariableDeclaration(var_name, expr)
+
+    parsed_ast = parse_expression(True)
     # print("--------")
     # print(parsed_ast)
     # print("--------")
