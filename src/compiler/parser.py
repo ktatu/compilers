@@ -154,8 +154,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_parenthesized()
         elif peek().text == "if":
             return parse_conditional()
-        # elif peek().text == "var":
-        #   return parse_variable_declaration()
         elif peek().type == "int_literal":
             return parse_int_literal()
         # all identifiers are treated the same in the tokenizer
@@ -217,7 +215,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         consume(")")
         return expr
 
-    def parse_block() -> ast.Expression:
+    def parse_block2() -> ast.Block:
         expressions: list[ast.Expression] = []
         consume("{")
 
@@ -233,6 +231,36 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
             expr = parse_expression(True)
             expressions.append(expr)
+
+        consume("}")
+
+        if no_result_expr:
+            return ast.Block(expressions)
+
+        result = expressions.pop()
+        return ast.Block(expressions, result)
+
+    # { { a } { b } }
+    # voidaan tarkistaa onko (edellinen) parse-tulos ast.Block
+    # sen perusteella voidaan päättää tarvitaanko ; vai ei
+    # in inner blocks, missing ; after } is allowed
+    def parse_block() -> ast.Block:
+        expressions: list[ast.Expression] = []
+        consume("{")
+
+        no_result_expr = False
+        while peek().text != "}":
+            expr = parse_expression(True)
+            expressions.append(expr)
+
+            try:
+                consume(";")
+                no_result_expr = True
+            except Exception as e:
+                if isinstance(expr, ast.Block) or peek().text == "}":
+                    no_result_expr = False
+                    continue
+                raise
 
         consume("}")
 

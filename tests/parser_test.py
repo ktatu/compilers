@@ -425,7 +425,7 @@ def test_parser_parses_expressions_as_function_args() -> None:
 
 
 ### BLOCK ###
-def test_parser_parses_basic_block() -> None:
+def test_parser_parses_basic_block_with_no_result() -> None:
     assert parse(
         [
             Token("punctuation", "{", L),
@@ -448,6 +448,45 @@ def test_parser_parses_block_with_result() -> None:
     ) == ast.Block([ast.Identifier("a")], ast.Identifier("b"))
 
 
+def test_parser_parses_basic_block_with_only_result() -> None:
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("identifier", "a", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block([], ast.Identifier("a"))
+
+
+def test_parser_parses_block_within_block() -> None:
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("punctuation", "{", L),
+            Token("identifier", "a", L),
+            Token("punctuation", "}", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block([], ast.Block([], ast.Identifier("a")))
+
+
+def test_parser_parses_inner_blocks_with_no_semicolons() -> None:
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("punctuation", "{", L),
+            Token("identifier", "a", L),
+            Token("punctuation", "}", L),
+            Token("punctuation", "{", L),
+            Token("identifier", "b", L),
+            Token("punctuation", "}", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block(
+        [ast.Block([], ast.Identifier("a"))], ast.Block([], ast.Identifier("b"))
+    )
+
+
 def test_parser_fails_to_parse_block_with_missing_semicolon() -> None:
     with pytest.raises(Exception) as exception:
         parse(
@@ -459,7 +498,7 @@ def test_parser_fails_to_parse_block_with_missing_semicolon() -> None:
             ]
         )
 
-    assert str(exception.value) == f'{L}: expected "}}"'
+    assert str(exception.value) == f'{L}: expected ";"'
 
 
 ### VARIABLE DECLARATION ###
