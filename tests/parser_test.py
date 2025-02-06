@@ -278,6 +278,14 @@ def test_parser_parses_nested_unaries() -> None:
         ]
     ) == ast.UnaryOp(L, "-", ast.UnaryOp(L, "not", ast.Identifier(L, "a")))
 
+    assert parse(
+        [
+            Token("operator", "not", L),
+            Token("operator", "not", L),
+            Token("identifier", "a", L),
+        ]
+    ) == ast.UnaryOp(L, "not", ast.UnaryOp(L, "not", ast.Identifier(L, "a")))
+
 
 def test_parser_parses_unary_with_parentheses() -> None:
     assert parse(
@@ -561,6 +569,18 @@ def test_parser_fails_to_parse_block_with_missing_semicolon() -> None:
         )
 
     assert str(exception.value) == f'{L}: expected ";"'
+
+
+### WHILE ###
+def test_parser_parses_basic_while_loop() -> None:
+    assert parse(
+        [
+            Token("identifier", "while", L),
+            Token("identifier", "x", L),
+            Token("identifier", "do", L),
+            Token("identifier", "y", L),
+        ]
+    ) == ast.While(L, ast.Identifier(L, "x"), ast.Identifier(L, "y"))
 
 
 ### VARIABLE DECLARATION ###

@@ -60,3 +60,9 @@ class Block(Expression):
 class VariableDeclaration(Expression):
     name: str
     initialize: Expression
+
+
+@dataclass
+class While(Expression):
+    cond: Expression
+    body: Expression

@@ -154,6 +154,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_parenthesized()
         elif peek().text == "if":
             return parse_conditional()
+        elif peek().text == "while":
+            return parse_while()
         elif peek().type == "int_literal":
             return parse_int_literal()
         # all identifiers are treated the same in the tokenizer
@@ -241,13 +243,21 @@ def parse(tokens: list[Token]) -> ast.Expression:
         result = expressions.pop()
         return ast.Block(block_token.location, expressions, result)
 
-    def parse_variable_declaration() -> ast.Expression:
+    def parse_variable_declaration() -> ast.VariableDeclaration:
         var_token = consume("var")
         identifier: ast.Identifier = parse_identifier()
         consume("=")
         expr = parse_expression()
 
         return ast.VariableDeclaration(var_token.location, identifier.name, expr)
+
+    def parse_while() -> ast.While:
+        while_token = consume("while")
+        condition_expr = parse_expression()
+        consume("do")
+        body_expr = parse_expression()
+
+        return ast.While(while_token.location, condition_expr, body_expr)
 
     parsed_ast = parse_expression(True)
     # print("--------")
