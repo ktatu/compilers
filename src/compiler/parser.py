@@ -207,7 +207,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         consume(")")
 
-        return ast.Function(ast.Identifier(function_name), args)
+        return ast.Function(function_name, args)
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")
@@ -215,34 +215,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
         consume(")")
         return expr
 
-    def parse_block2() -> ast.Block:
-        expressions: list[ast.Expression] = []
-        consume("{")
-
-        first_expr = parse_expression(True)
-        expressions.append(first_expr)
-
-        no_result_expr = False
-        while peek().text == ";":
-            consume(";")
-            if peek().text == "}":
-                no_result_expr = True
-                break
-
-            expr = parse_expression(True)
-            expressions.append(expr)
-
-        consume("}")
-
-        if no_result_expr:
-            return ast.Block(expressions)
-
-        result = expressions.pop()
-        return ast.Block(expressions, result)
-
-    # { { a } { b } }
-    # voidaan tarkistaa onko (edellinen) parse-tulos ast.Block
-    # sen perusteella voidaan päättää tarvitaanko ; vai ei
     # in inner blocks, missing ; after } is allowed
     def parse_block() -> ast.Block:
         expressions: list[ast.Expression] = []
@@ -272,11 +244,11 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
     def parse_variable_declaration() -> ast.Expression:
         consume("var")
-        var_name: ast.Identifier = parse_identifier()
+        identifier: ast.Identifier = parse_identifier()
         consume("=")
         expr = parse_expression()
 
-        return ast.VariableDeclaration(var_name, expr)
+        return ast.VariableDeclaration(identifier.name, expr)
 
     parsed_ast = parse_expression(True)
     # print("--------")

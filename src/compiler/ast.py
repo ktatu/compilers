@@ -41,7 +41,7 @@ class Conditional(Expression):
 @dataclass
 class Function(Expression):
     # maybe this should just be str?
-    name: Identifier
+    name: str
     arguments: list[Expression]
 
 
@@ -53,5 +53,5 @@ class Block(Expression):
 
 @dataclass
 class VariableDeclaration(Expression):
-    name: Identifier
+    name: str
     initialize: Expression

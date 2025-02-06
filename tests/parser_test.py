@@ -390,7 +390,7 @@ def test_parser_parses_function() -> None:
             Token("identifier", "a", L),
             Token("punctuation", ")", L),
         ]
-    ) == ast.Function(ast.Identifier("f"), [ast.Identifier("a")])
+    ) == ast.Function("f", [ast.Identifier("a")])
 
 
 def test_parser_parses_function_with_multiple_args() -> None:
@@ -403,7 +403,7 @@ def test_parser_parses_function_with_multiple_args() -> None:
             Token("identifier", "b", L),
             Token("punctuation", ")", L),
         ]
-    ) == ast.Function(ast.Identifier("f"), [ast.Identifier("a"), ast.Identifier("b")])
+    ) == ast.Function("f", [ast.Identifier("a"), ast.Identifier("b")])
 
 
 def test_parser_parses_expressions_as_function_args() -> None:
@@ -419,7 +419,7 @@ def test_parser_parses_expressions_as_function_args() -> None:
             Token("punctuation", ")", L),
         ]
     ) == ast.Function(
-        ast.Identifier("f"),
+        "f",
         [ast.BinaryOp(ast.Identifier("a"), "+", ast.Identifier("b")), ast.Literal(1)],
     )
 
@@ -510,7 +510,7 @@ def test_parser_parses_basic_variable_declaration() -> None:
             Token("operator", "=", L),
             Token("int_literal", "1", L),
         ]
-    ) == ast.VariableDeclaration(ast.Identifier("x"), ast.Literal(1))
+    ) == ast.VariableDeclaration("x", ast.Literal(1))
 
     assert parse(
         [
@@ -521,9 +521,7 @@ def test_parser_parses_basic_variable_declaration() -> None:
             Token("operator", "+", L),
             Token("int_literal", "2", L),
         ]
-    ) == ast.VariableDeclaration(
-        ast.Identifier("x"), ast.BinaryOp(ast.Literal(1), "+", ast.Literal(2))
-    )
+    ) == ast.VariableDeclaration("x", ast.BinaryOp(ast.Literal(1), "+", ast.Literal(2)))
 
 
 def test_parser_parses_var_declaration_inside_block_top_level() -> None:
@@ -539,7 +537,7 @@ def test_parser_parses_var_declaration_inside_block_top_level() -> None:
         ]
     ) == ast.Block(
         [
-            ast.VariableDeclaration(ast.Identifier("x"), ast.Literal(1)),
+            ast.VariableDeclaration("x", ast.Literal(1)),
         ],
         ast.Literal(None),
     )
@@ -565,8 +563,8 @@ def test_parser_parses_multiple_var_declarations_in_different_block_top_levels()
         ]
     ) == ast.Block(
         [
-            ast.VariableDeclaration(ast.Identifier("x"), ast.Literal(1)),
-            ast.VariableDeclaration(ast.Identifier("y"), ast.Identifier("a")),
+            ast.VariableDeclaration("x", ast.Literal(1)),
+            ast.VariableDeclaration("y", ast.Identifier("a")),
         ],
         ast.Literal(None),
     )
