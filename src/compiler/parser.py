@@ -35,7 +35,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             raise Exception(f"{peek().location}: expected an integer literal")
         token = consume()
 
-        return ast.Literal(int(token.text))
+        return ast.Literal(token.location, int(token.text))
 
     def parse_identifier() -> ast.Identifier | ast.Function:
         if peek().type != "identifier":
@@ -48,9 +48,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
         token = consume()
 
         if peek().text == "(":
-            return parse_function(token.text)
+            return parse_function(token)
 
-        return ast.Identifier(str(token.text))
+        return ast.Identifier(token.location, str(token.text))
 
     def parse_expression(allow_var_parsing=False) -> ast.Expression:
         if allow_var_parsing and peek().text == "var":
@@ -66,7 +66,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             operator = operator_token.text
 
             right = parse_assignment()
-            left = ast.BinaryOp(left, operator, right)
+            left = ast.BinaryOp(operator_token.location, left, operator, right)
 
         return left
 
@@ -77,7 +77,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             operator_token = consume()
             operator = operator_token.text
             right = parse_and()
-            left = ast.BinaryOp(left, operator, right)
+            left = ast.BinaryOp(operator_token.location, left, operator, right)
 
         return left
 
@@ -88,7 +88,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             operator_token = consume()
             operator = operator_token.text
             right = parse_equality()
-            left = ast.BinaryOp(left, operator, right)
+            left = ast.BinaryOp(operator_token.location, left, operator, right)
 
         return left
 
@@ -99,7 +99,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             operator_token = consume()
             operator = operator_token.text
             right = parse_comparison()
-            left = ast.BinaryOp(left, operator, right)
+            left = ast.BinaryOp(operator_token.location, left, operator, right)
 
         return left
 
@@ -110,7 +110,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             operator_token = consume()
             operator = operator_token.text
             right = parse_arithmetic()
-            left = ast.BinaryOp(left, operator, right)
+            left = ast.BinaryOp(operator_token.location, left, operator, right)
 
         return left
 
@@ -121,7 +121,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             operator_token = consume()
             operator = operator_token.text
             right = parse_term()
-            left = ast.BinaryOp(left, operator, right)
+            left = ast.BinaryOp(operator_token.location, left, operator, right)
 
         return left
 
@@ -132,7 +132,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             operator_token = consume()
             operator = operator_token.text
             right = parse_factor()
-            left = ast.BinaryOp(left, operator, right)
+            left = ast.BinaryOp(operator_token.location, left, operator, right)
 
         return left
 
@@ -172,27 +172,26 @@ def parse(tokens: list[Token]) -> ast.Expression:
             )
 
     def parse_unary_operation() -> ast.UnaryOp:
-        unary_operator = consume().text
+        operator_token = consume()
         expr = parse_expression()
 
-        return ast.UnaryOp(unary_operator, expr)
+        return ast.UnaryOp(operator_token.location, operator_token.text, expr)
 
     def parse_conditional() -> ast.Conditional:
-        conditional: ast.Conditional = ast.Conditional(
-            consume_and_parse("if"), consume_and_parse("then")
-        )
+        if_token = consume("if")
+        if_expr = parse_expression()
+
+        consume("then")
+        then_expr = parse_expression()
 
         if peek().text == "else":
             consume("else")
-            conditional.cond_else = parse_expression()
+            else_expr = parse_expression()
+            return ast.Conditional(if_token.location, if_expr, then_expr, else_expr)
 
-        return conditional
+        return ast.Conditional(if_token.location, if_expr, then_expr)
 
-    def consume_and_parse(keyword_to_consume: str) -> ast.Expression:
-        consume(keyword_to_consume)
-        return parse_expression()
-
-    def parse_function(function_name: str) -> ast.Function:
+    def parse_function(function_token: Token) -> ast.Function:
         args: list[ast.Expression] = []
         consume("(")
 
@@ -207,7 +206,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         consume(")")
 
-        return ast.Function(function_name, args)
+        return ast.Function(function_token.location, function_token.text, args)
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")
@@ -218,7 +217,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     # in inner blocks, missing ; after } is allowed
     def parse_block() -> ast.Block:
         expressions: list[ast.Expression] = []
-        consume("{")
+        block_token = consume("{")
 
         no_result_expr = False
         while peek().text != "}":
@@ -237,18 +236,18 @@ def parse(tokens: list[Token]) -> ast.Expression:
         consume("}")
 
         if no_result_expr:
-            return ast.Block(expressions)
+            return ast.Block(block_token.location, expressions)
 
         result = expressions.pop()
-        return ast.Block(expressions, result)
+        return ast.Block(block_token.location, expressions, result)
 
     def parse_variable_declaration() -> ast.Expression:
-        consume("var")
+        var_token = consume("var")
         identifier: ast.Identifier = parse_identifier()
         consume("=")
         expr = parse_expression()
 
-        return ast.VariableDeclaration(identifier.name, expr)
+        return ast.VariableDeclaration(var_token.location, identifier.name, expr)
 
     parsed_ast = parse_expression(True)
     # print("--------")

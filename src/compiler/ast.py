@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
+from compiler.tokenizer import Location
 
 
 @dataclass
 class Expression:
     """Base class for AST nodes representing expressions."""
+
+    location: Location
 
 
 @dataclass
@@ -48,7 +51,9 @@ class Function(Expression):
 @dataclass
 class Block(Expression):
     statements: list[Expression]
-    result: Expression | Literal = field(default_factory=lambda: Literal(None))
+    result: Expression | Literal = field(
+        default_factory=lambda: Literal(location=None, value=None)
+    )
 
 
 @dataclass
