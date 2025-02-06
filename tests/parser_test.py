@@ -424,6 +424,44 @@ def test_parser_parses_expressions_as_function_args() -> None:
     )
 
 
+### BLOCK ###
+def test_parser_parses_basic_block() -> None:
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("identifier", "a", L),
+            Token("punctuation", ";", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block([ast.Identifier("a")], ast.Literal(None))
+
+
+def test_parser_parses_block_with_result() -> None:
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("identifier", "a", L),
+            Token("punctuation", ";", L),
+            Token("identifier", "b", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block([ast.Identifier("a")], ast.Identifier("b"))
+
+
+def test_parser_fails_to_parse_block_with_missing_semicolon() -> None:
+    with pytest.raises(Exception) as exception:
+        parse(
+            [
+                Token("punctuation", "{", L),
+                Token("identifier", "a", L),
+                Token("identifier", "b", L),
+                Token("punctuation", "}", L),
+            ]
+        )
+
+    assert str(exception.value) == f'{L}: expected "}}"'
+
+
 ### EMPTY TOKEN LIST ###
 def test_parser_empty_tokens_list_raises_exception() -> None:
     with pytest.raises(Exception) as exception:

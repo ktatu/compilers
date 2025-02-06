@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -8,7 +8,7 @@ class Expression:
 
 @dataclass
 class Literal(Expression):
-    value: int | bool
+    value: int | bool | None
 
 
 @dataclass
@@ -43,3 +43,9 @@ class Function(Expression):
     # maybe this should just be str?
     name: Identifier
     arguments: list[Expression]
+
+
+@dataclass
+class Block(Expression):
+    expressions: list[Expression]
+    result: Expression | Literal = field(default_factory=lambda: Literal(None))
