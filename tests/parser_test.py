@@ -357,6 +357,12 @@ def test_parser_parses_arithmetic_operations_with_parentheses2() -> None:
     )
 
 
+### BOOLEAN ###
+def test_parser_parses_basic_boolean() -> None:
+    assert parse([Token("identifier", "true", L)]) == ast.Literal(L, True)
+    assert parse([Token("identifier", "false", L)]) == ast.Literal(L, False)
+
+
 ### CONDITIONAL ###
 def test_parser_parses_basic_conditional() -> None:
     assert parse(

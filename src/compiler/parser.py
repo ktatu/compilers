@@ -37,6 +37,15 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         return ast.Literal(token.location, int(token.text))
 
+    def parse_boolean_literal() -> ast.Literal:
+        if peek().type != "identifier":
+            raise Exception(f"{peek().location}: expected an identifier")
+        token = consume()
+
+        if token.text == "true":
+            return ast.Literal(token.location, True)
+        return ast.Literal(token.location, False)
+
     def parse_identifier() -> ast.Identifier | ast.Function:
         if peek().type != "identifier":
             raise Exception(f"{peek().location}: expected an identifier")
@@ -156,6 +165,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return parse_conditional()
         elif peek().text == "while":
             return parse_while()
+        elif peek().text in ["true", "false"]:
+            return parse_boolean_literal()
         elif peek().type == "int_literal":
             return parse_int_literal()
         # all identifiers are treated the same in the tokenizer
