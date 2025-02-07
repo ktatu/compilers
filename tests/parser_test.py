@@ -675,6 +675,39 @@ def test_parser_fails_when_var_declaration_not_in_top_level() -> None:
     )
 
 
+### MULTIPLE TOP LEVEL EXPRESSIONS ###
+def test_parser_parses_multiple_top_level_expressions_with_no_result() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("punctuation", ";", L),
+            Token("identifier", "b", L),
+            Token("punctuation", ";", L),
+        ]
+    ) == ast.Block(
+        L, [ast.Identifier(L, "a"), ast.Identifier(L, "b")], ast.Literal(None, None)
+    )
+
+
+def test_parser_parses_multiple_top_level_expressions_with_result() -> None:
+    assert parse(
+        [
+            Token("identifier", "a", L),
+            Token("punctuation", ";", L),
+            Token("identifier", "b", L),
+            Token("punctuation", ";", L),
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("int_literal", "5", L),
+        ]
+    ) == ast.Block(
+        L,
+        [ast.Identifier(L, "a"), ast.Identifier(L, "b")],
+        ast.VariableDeclaration(L, "x", ast.Literal(L, 5)),
+    )
+
+
 ### EMPTY TOKEN LIST ###
 def test_parser_empty_tokens_list_raises_exception() -> None:
     with pytest.raises(Exception) as exception:

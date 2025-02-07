@@ -259,14 +259,40 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         return ast.While(while_token.location, condition_expr, body_expr)
 
+    def parse_top_level_expressions(first_expr: ast.Expression) -> list[ast.Expression]:
+        expressions: list[ast.Expression] = [first_expr]
+        consume(";")
+
+        no_result_expr = False
+        while peek().type != "end":
+            expr = parse_expression(True)
+            expressions.append(expr)
+
+            if peek().text == ";":
+                consume(";")
+                no_result_expr = True
+                continue
+
+            no_result_expr = False
+
+        if no_result_expr:
+            return ast.Block(first_expr.location, expressions)
+
+        result = expressions.pop()
+        return ast.Block(first_expr.location, expressions, result)
+
     parsed_ast = parse_expression(True)
     # print("--------")
     # print(parsed_ast)
     # print("--------")
 
+    last_token = peek()
+
+    if last_token.text == ";":
+        return parse_top_level_expressions(parsed_ast)
+
     # last token always has to be end, otherwise there's tokens that went unhandled
     # this also handles cases like a b + c, not only garbage tokens at the end of list
-    last_token = peek()
     if last_token.type != "end":
         raise Exception(
             f"{peek().location}: parsing ended at an unexpected token: {last_token.text}"
