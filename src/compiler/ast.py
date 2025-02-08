@@ -11,7 +11,7 @@ class Expression:
 
 @dataclass
 class Literal(Expression):
-    value: int | bool | None
+    value: int | bool
 
 
 @dataclass
