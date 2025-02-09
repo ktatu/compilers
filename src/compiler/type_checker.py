@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import compiler.ast as ast
-from compiler.types import Int, Type, Bool
+from compiler.types import Int, Type, Bool, Plus
 
 
 @dataclass
@@ -10,6 +10,24 @@ class SymTab:
 
 
 def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
+    current_tab: SymTab = SymTab({}, sym_tab)
+
+    def add_symbol(node: ast.VariableDeclaration):
+        value = typecheck(node.initialize, current_tab)
+        current_tab.locals[node.name] = value
+
+    def add_top_level_symbols() -> None:
+        current_tab.locals["+"] = Plus
+        current_tab.locals["-"] = lambda x, y: x - y
+        current_tab.locals["<"] = lambda x, y: x < y
+
+    def get_top_level_symbol(symbol: str) -> Type:
+        tab: SymTab = current_tab
+
+        while tab.parent is not None:
+            tab = tab.parent
+
+        return tab.locals[symbol]
 
     match node:
 

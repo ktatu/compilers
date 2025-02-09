@@ -1,31 +1,26 @@
 from dataclasses import dataclass
+from typing import Tuple
 
 
-@dataclass
+@dataclass(frozen=True)
 class Type:
     "Base class"
 
 
-@dataclass
-class Int(Type):
-    """"""
+@dataclass(frozen=True)
+class BasicType(Type):
+    name: str
 
 
-@dataclass
-class Bool(Type):
-    """"""
+Int = BasicType("Int")
+Bool = BasicType("Bool")
+Unit = BasicType("Unit")
 
 
-@dataclass
-class Bool(Type):
-    """"""
+@dataclass(frozen=True)
+class FunctionType(Type):
+    argument_types: Tuple[Type, ...]
+    return_type: Type
 
 
-@dataclass
-class Unit(Type):
-    """"""
-
-
-@dataclass
-class FunType(Type):
-    """"""
+Plus = FunctionType((Int, Int), Int)
