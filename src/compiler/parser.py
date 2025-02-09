@@ -82,7 +82,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
     def parse_or() -> ast.Expression:
         left = parse_and()
 
-        while peek().text == "and":
+        while peek().text == "or":
             operator_token = consume()
             operator = operator_token.text
             right = parse_and()
