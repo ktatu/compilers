@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 import compiler.ast as ast
 
 type Value = int | bool | None
@@ -13,14 +13,27 @@ class SymTab:
 
 # mistä tiedetään, millä hierarkisella tasolla kullakin hetkellä ollaan?
 def interpret(node: ast.Expression, sym_tab: SymTab = None) -> Value:
-    # jokainen rekursio on uusi taso sym_tablessa
-    # kun mennään uuteen tasoon, luodaan uusi sym_tab
-    # parametrina saadaan edellisten tasojen ketju
-    current_tab = SymTab({}, sym_tab)
+    current_tab: SymTab = SymTab({}, sym_tab)
 
     def add_symbol(node: ast.VariableDeclaration):
         value = interpret(node.initialize, current_tab)
         current_tab.locals[node.name] = value
+
+    def add_top_level_symbols() -> None:
+        current_tab.locals["+"] = lambda x, y: x + y
+        current_tab.locals["-"] = lambda x, y: x - y
+        current_tab.locals["<"] = lambda x, y: x < y
+
+    def get_top_level_operation(symbol: str) -> Callable[..., Any]:
+        tab: SymTab = current_tab
+
+        while tab.parent is not None:
+            tab = tab.parent
+
+        return tab.locals[symbol]
+
+    if sym_tab is None:
+        add_top_level_symbols()
 
     match node:
         case ast.Literal():
@@ -62,12 +75,9 @@ def interpret(node: ast.Expression, sym_tab: SymTab = None) -> Value:
         case ast.BinaryOp():
             a: Any = interpret(node.left, current_tab)
             b: Any = interpret(node.right, current_tab)
-            if node.op == "+":
-                return a + b
-            elif node.op == "<":
-                return a < b
-            else:
-                raise Exception(f"Unsupported binary operator: {node.op}")
+
+            operation = get_top_level_operation(node.op)
+            return operation(a, b)
 
         case ast.Conditional():
             if interpret(node.cond_if):
