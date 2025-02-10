@@ -18,17 +18,25 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
 
     def add_top_level_func_types() -> None:
         for arithmetic_op in ["+", "-", "*", "/", "%"]:
-            current_tab.locals[arithmetic_op] = Arithmetic
+            current_tab.locals[arithmetic_op] = FunType(
+                (
+                    Int,
+                    Int,
+                ),
+                Int,
+            )
 
         for comparison_op in ["<", "<=", ">", ">="]:
-            current_tab.locals[comparison_op] = Comparison
+            current_tab.locals[comparison_op] = FunType((Int, Int), Bool)
 
-        current_tab.locals["or"] = AndOr
-        current_tab.locals["and"] = AndOr
+        current_tab.locals["or"] = FunType((Bool, Bool), Bool)
+        current_tab.locals["and"] = FunType((Bool, Bool), Bool)
 
-        current_tab.locals["print_int"] = PrintInt
-        current_tab.locals["print_bool"] = PrintBool
-        current_tab.locals["read_int"] = ReadInt
+        """ no support or tests for built-in-functions yet
+        current_tab.locals["print_int"] = FunType((Int), Unit)
+        current_tab.locals["print_bool"] = FunType((Bool), Unit)
+        current_tab.locals["read_int"] = FunType((Int), Unit)
+        """
 
     def get_symbol(symbol: str, tab: SymTab = current_tab) -> Type:
         if symbol in tab.locals.keys():
@@ -85,8 +93,6 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
             if isinstance(node.result, ast.Literal) and node.result.value is None:
                 return Unit
             # node.result is None when the node is an empty block
-            # unsure about this return, maybe it should be None?
-            # parser sets result of empty block as None, which might also be wrong
             elif node.result is None:
                 return Unit
             else:
@@ -96,17 +102,26 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
             t1 = typecheck(node.left, current_tab)
             t2 = typecheck(node.right, current_tab)
 
-            func_type: FunType = get_symbol(node.op)
+            func_type: FunType = None
+
+            # separately handling operators where both values should have same type (of any type)
+            if node.op in ["=", "==", "!="]:
+                if t1 != t2:
+                    raise Exception(
+                        f"{node.location}. Type check error: two values of binary operation had different types, {t1, t2}"
+                    )
+                if node.op == "=":
+                    return Unit
+                return Bool
+            else:
+                func_type = get_symbol(node.op)
 
             if func_type is None:
                 raise Exception(
                     f"{node.location}. Type check error: unsupported BinaryOp, {node.op}"
                 )
 
-            if (t1, t2) != func_type.argument_types and (
-                t2,
-                t1,
-            ) != func_type.argument_types:
+            if (t1, t2) != func_type.argument_types:
                 raise Exception(
                     f"{node.location}. Type check error: expected BinaryOp argument types {func_type.argument_types}, received {t1, t2}"
                 )

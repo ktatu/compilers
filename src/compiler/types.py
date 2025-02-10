@@ -21,13 +21,3 @@ Unit = BasicType("Unit")
 class FunType(Type):
     argument_types: Tuple[Type, ...]
     return_type: Type
-
-
-Arithmetic = FunType((Int, Int), Int)
-Comparison = FunType((Int, Int), Bool)
-AndOr = FunType((Bool, Bool), Bool)
-
-PrintBool = FunType((Bool), Unit)
-PrintInt = FunType((Int), Unit)
-# not sure about this one
-ReadInt = FunType((Int), Unit)

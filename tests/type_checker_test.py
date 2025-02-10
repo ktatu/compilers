@@ -28,6 +28,15 @@ def test_type_or() -> None:
     assert type_check("true or false") == Bool
 
 
+def test_type_assignment() -> None:
+    assert type_check("var x = 5; x = 10") == Unit
+
+
+def test_type_equality() -> None:
+    assert type_check("var x = 5; var y = 10; x == y") == Bool
+    assert type_check("var x = 5; var y = 10; x != y") == Bool
+
+
 ### CONDITIONAL ###
 def test_type_conditionals() -> None:
     assert type_check("if true then 1 else 2") == Int
