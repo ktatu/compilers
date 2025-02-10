@@ -305,7 +305,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
     last_token = peek()
 
     if last_token.text == ";":
-        return parse_top_level_expressions(parsed_ast)
+        return_val = parse_top_level_expressions(parsed_ast)
+        return return_val
 
     # last token always has to be end, otherwise there's tokens that went unhandled
     # this also handles cases like a b + c, not only garbage tokens at the end of list

@@ -59,7 +59,7 @@ class Block(Expression):
 @dataclass
 class VariableDeclaration(Expression):
     name: str
-    initialize: Expression
+    initializer: Expression
 
 
 @dataclass

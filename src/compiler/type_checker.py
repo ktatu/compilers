@@ -13,7 +13,7 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
     current_tab: SymTab = SymTab({}, sym_tab)
 
     def add_symbol_type(node: ast.VariableDeclaration):
-        symbol_type = typecheck(node.initialize, current_tab)
+        symbol_type = typecheck(node.initializer, current_tab)
         current_tab.locals[node.name] = symbol_type
 
     def add_top_level_func_types() -> None:
@@ -31,6 +31,9 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
 
         current_tab.locals["or"] = FunType((Bool, Bool), Bool)
         current_tab.locals["and"] = FunType((Bool, Bool), Bool)
+
+        current_tab.locals["unary_not"] = FunType((Bool), Bool)
+        current_tab.locals["unary_-"] = FunType((Int), Int)
 
         """ no support or tests for built-in-functions yet
         current_tab.locals["print_int"] = FunType((Int), Unit)
@@ -65,6 +68,18 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
         case ast.VariableDeclaration():
             add_symbol_type(node)
             return Unit
+
+        case ast.UnaryOp():
+            t2 = typecheck(node.right, current_tab)
+
+            func_type: FunType = get_symbol("unary_" + node.op)
+
+            if (t2) != func_type.argument_types:
+                raise Exception(
+                    f"{node.location}. Type check error: value in unary operation was not bool, {t2}"
+                )
+
+            return func_type.return_type
 
         case ast.Identifier():
             identifier_type = get_symbol(node.name)

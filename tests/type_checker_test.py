@@ -9,7 +9,7 @@ def type_check(source_code: str) -> Type:
     return typecheck(parse(tokenize(source_code)))
 
 
-### BINARY OPERATIONS
+### BINARY OPERATION ###
 def test_type_basic_arithmetic() -> None:
     assert type_check("1 + 2") == Int
     assert type_check("1 - 2") == Int
@@ -35,6 +35,14 @@ def test_type_assignment() -> None:
 def test_type_equality() -> None:
     assert type_check("var x = 5; var y = 10; x == y") == Bool
     assert type_check("var x = 5; var y = 10; x != y") == Bool
+
+
+### UNARY OPERATION ###
+def test_type_unary_operation() -> None:
+    assert type_check("not true") == Bool
+    assert type_check("var x = true; not x") == Bool
+    assert type_check("- 5") == Int
+    assert type_check("var x = 5; - x") == Int
 
 
 ### CONDITIONAL ###

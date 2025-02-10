@@ -16,7 +16,7 @@ def interpret(node: ast.Expression, sym_tab: SymTab = None) -> Value:
     current_tab: SymTab = SymTab({}, sym_tab)
 
     def add_symbol(node: ast.VariableDeclaration):
-        value = interpret(node.initialize, current_tab)
+        value = interpret(node.initializer, current_tab)
         current_tab.locals[node.name] = value
 
     def add_top_level_symbols() -> None:

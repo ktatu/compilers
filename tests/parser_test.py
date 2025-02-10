@@ -323,6 +323,24 @@ def test_parser_parses_unary_with_parentheses() -> None:
     )
 
 
+def test_parser_parses_unary_of_declared_variable() -> None:
+    assert parse(
+        [
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("identifier", "true", L),
+            Token("punctuation", ";", L),
+            Token("operator", "-", L),
+            Token("identifier", "x", L),
+        ],
+    ) == ast.Block(
+        L,
+        [ast.VariableDeclaration(L, "x", ast.Literal(L, True))],
+        ast.UnaryOp(L, "-", ast.Identifier(L, "x")),
+    )
+
+
 ### PUNCTUATION
 def test_parser_parses_parentheses() -> None:
     assert parse(
