@@ -251,7 +251,12 @@ def parse(tokens: list[Token]) -> ast.Expression:
         if no_result_expr:
             return ast.Block(block_token.location, expressions)
 
-        result = expressions.pop()
+        # except == handling an empty block
+        try:
+            result = expressions.pop()
+        except:
+            result = None
+
         return ast.Block(block_token.location, expressions, result)
 
     def parse_variable_declaration() -> ast.VariableDeclaration:

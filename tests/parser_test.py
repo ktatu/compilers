@@ -202,6 +202,25 @@ def test_parser_parses_multiple_assignments() -> None:
     )
 
 
+def test_parser_parses_variable_reassignment() -> None:
+    assert parse(
+        [
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("int_literal", "5", L),
+            Token("punctuation", ";", L),
+            Token("identifier", "x", L),
+            Token("operator", "=", L),
+            Token("int_literal", "10", L),
+        ]
+    ) == ast.Block(
+        L,
+        [ast.VariableDeclaration(L, "x", ast.Literal(L, 5))],
+        ast.BinaryOp(L, ast.Identifier(L, "x"), "=", ast.Literal(L, 10)),
+    )
+
+
 ### != == ###
 def test_parser_parses_basic_equality_operation() -> None:
     assert parse(
@@ -499,6 +518,15 @@ def test_parser_parses_expressions_as_function_args() -> None:
 
 
 ### BLOCK ###
+def test_parser_parses_empty_block() -> None:
+    assert parse(
+        [
+            Token("punctuation", "{", L),
+            Token("punctuation", "}", L),
+        ]
+    ) == ast.Block(L, [], None)
+
+
 def test_parser_parses_basic_block_with_no_result() -> None:
     assert parse(
         [

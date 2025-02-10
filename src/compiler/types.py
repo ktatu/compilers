@@ -18,9 +18,16 @@ Unit = BasicType("Unit")
 
 
 @dataclass(frozen=True)
-class FunctionType(Type):
+class FunType(Type):
     argument_types: Tuple[Type, ...]
     return_type: Type
 
 
-Plus = FunctionType((Int, Int), Int)
+Arithmetic = FunType((Int, Int), Int)
+Comparison = FunType((Int, Int), Bool)
+AndOr = FunType((Bool, Bool), Bool)
+
+PrintBool = FunType((Bool), Unit)
+PrintInt = FunType((Int), Unit)
+# not sure about this one
+ReadInt = FunType((Int), Unit)
