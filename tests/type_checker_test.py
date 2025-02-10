@@ -78,3 +78,15 @@ def test_type_for_empty_block_is_unit() -> None:
 
 def test_type_empty_block_and_result() -> None:
     assert type_check(f"{{}}; 5") == Int
+
+
+### WHILE ###
+def test_type_while_loop() -> None:
+    assert type_check("while true do 5") == Unit
+
+
+def test_type_while_loop_fails_when_body_typecheck_fails() -> None:
+    with pytest.raises(Exception) as e:
+        type_check("while true do x")
+
+    assert "Type check error: could not find type for symbol" in str(e.value)

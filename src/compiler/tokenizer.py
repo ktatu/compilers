@@ -20,7 +20,7 @@ class Token:
 
 
 # Operators: +, -, *, /, =, ==, !=, <, <=, >, >=
-# this still allows things like test- to pass as identifiers
+# this still allows things like test- to pass as identifiers, which should be two tokens: test and -
 def tokenize(source_code: str) -> list[Token]:
     newline_re = re.compile(r"\n")
     whitespace_re = re.compile(r"\s")
@@ -28,7 +28,7 @@ def tokenize(source_code: str) -> list[Token]:
     # maybe \b shouldnt be at the start? might break something later
     identifier_re = re.compile(r"\b[A-Za-z_][A-Za-z_0-9]*")
     integer_literal_re = re.compile(r"[0-9]+")
-    operator_re = re.compile(r"(==|<=|>=|!=|\+|-|\*|/|=|>|<|%|not|and)")
+    operator_re = re.compile(r"(==|<=|>=|!=|\+|-|\*|/|=|>|<|%|not|and|or)")
     punctuation_re = re.compile(r"[(){},;]")
 
     position = 0

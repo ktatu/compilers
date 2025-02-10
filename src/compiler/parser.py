@@ -46,7 +46,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return ast.Literal(token.location, True)
         return ast.Literal(token.location, False)
 
-    def parse_identifier() -> ast.Identifier | ast.Function:
+    def parse_identifier() -> ast.Identifier | ast.FunctionCall:
         if peek().type != "identifier":
             raise Exception(f"{peek().location}: expected an identifier")
         if peek().text == "var":
@@ -204,7 +204,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         return ast.Conditional(if_token.location, if_expr, then_expr)
 
-    def parse_function(function_token: Token) -> ast.Function:
+    def parse_function(function_token: Token) -> ast.FunctionCall:
         args: list[ast.Expression] = []
         consume("(")
 
@@ -219,7 +219,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         consume(")")
 
-        return ast.Function(function_token.location, function_token.text, args)
+        return ast.FunctionCall(function_token.location, function_token.text, args)
 
     def parse_parenthesized() -> ast.Expression:
         consume("(")

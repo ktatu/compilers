@@ -81,6 +81,17 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
 
             return func_type.return_type
 
+        case ast.While():
+            cond_type = typecheck(node.cond, current_tab)
+            if cond_type is not Bool:
+                raise Exception(
+                    f"{node.location}. Type check error: condition of while-loop was not bool, {cond_type}"
+                )
+
+            typecheck(node.body, current_tab)
+
+            return Unit
+
         case ast.Identifier():
             identifier_type = get_symbol(node.name)
             if identifier_type is None:

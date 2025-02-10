@@ -492,7 +492,7 @@ def test_parser_parses_function() -> None:
             Token("identifier", "a", L),
             Token("punctuation", ")", L),
         ]
-    ) == ast.Function(L, "f", [ast.Identifier(L, "a")])
+    ) == ast.FunctionCall(L, "f", [ast.Identifier(L, "a")])
 
 
 def test_parser_parses_function_with_multiple_args() -> None:
@@ -505,7 +505,7 @@ def test_parser_parses_function_with_multiple_args() -> None:
             Token("identifier", "b", L),
             Token("punctuation", ")", L),
         ]
-    ) == ast.Function(L, "f", [ast.Identifier(L, "a"), ast.Identifier(L, "b")])
+    ) == ast.FunctionCall(L, "f", [ast.Identifier(L, "a"), ast.Identifier(L, "b")])
 
 
 def test_parser_parses_expressions_as_function_args() -> None:
@@ -520,7 +520,7 @@ def test_parser_parses_expressions_as_function_args() -> None:
             Token("int_literal", "1", L),
             Token("punctuation", ")", L),
         ]
-    ) == ast.Function(
+    ) == ast.FunctionCall(
         L,
         "f",
         [

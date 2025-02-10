@@ -42,8 +42,7 @@ class Conditional(Expression):
 
 
 @dataclass
-class Function(Expression):
-    # maybe this should just be str?
+class FunctionCall(Expression):
     name: str
     arguments: list[Expression]
 
