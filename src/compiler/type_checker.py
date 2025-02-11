@@ -159,14 +159,6 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
             for expr in node.arguments:
                 expr_types.append(typecheck(expr))
 
-            # expr_types = tuple(expr_types)
-            print("---")
-            print(expr_types)
-            print("---")
-            print(func_type.argument_types)
-            print(type(func_type.argument_types))
-            print("---")
-
             if expr_types != func_type.argument_types:
                 raise Exception(
                     f"{node.location}. Type check error: types of function arguments do not match expected types"

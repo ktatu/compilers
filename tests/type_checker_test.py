@@ -12,11 +12,9 @@ def type_check(source_code: str) -> Type:
 ### BINARY OPERATION ###
 def test_type_basic_arithmetic() -> None:
     assert type_check("1 + 2") == Int
-    """
     assert type_check("1 - 2") == Int
     assert type_check("1 * 2") == Int
     assert type_check("1 / 2") == Int
-    """
 
 
 def test_type_basic_comparisons() -> None:
@@ -95,5 +93,12 @@ def test_type_while_loop_fails_when_body_typecheck_fails() -> None:
 
 
 ### FUNCTION CALL ###
-def test_type_of_built_in_func_print_int() -> None:
+def test_type_of_built_in_functions() -> None:
     assert type_check("print_int(5)") == Unit
+    assert type_check("print_bool(false)") == Unit
+    assert type_check("read_int(5)") == Unit
+
+    with pytest.raises(Exception) as e1:
+        type_check("print_int(true)")
+
+    assert "types of function arguments do not match expected types" in str(e1.value)
