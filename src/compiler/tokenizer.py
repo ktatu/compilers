@@ -29,7 +29,7 @@ def tokenize(source_code: str) -> list[Token]:
     identifier_re = re.compile(r"\b[A-Za-z_][A-Za-z_0-9]*")
     integer_literal_re = re.compile(r"[0-9]+")
     operator_re = re.compile(r"(==|<=|>=|!=|\+|-|\*|/|=|>|<|%|not|and|or)")
-    punctuation_re = re.compile(r"[(){},;]")
+    punctuation_re = re.compile(r"[(){},;:]")
 
     position = 0
     # the current column is position - column_start_pos

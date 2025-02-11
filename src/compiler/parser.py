@@ -1,5 +1,6 @@
 from compiler.tokenizer import Token
 import compiler.ast as ast
+from compiler.types import BasicType
 
 
 def parse(tokens: list[Token]) -> ast.Expression:
@@ -46,7 +47,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
             return ast.Literal(token.location, True)
         return ast.Literal(token.location, False)
 
-    def parse_identifier() -> ast.Identifier | ast.FunctionCall:
+    # only_identifier means that the parsing should not allow / expect function calls
+    def parse_identifier(only_identifier=False) -> ast.Identifier | ast.FunctionCall:
         if peek().type != "identifier":
             raise Exception(f"{peek().location}: expected an identifier")
         if peek().text == "var":
@@ -56,7 +58,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
         token = consume()
 
-        if peek().text == "(":
+        if peek().text == "(" and only_identifier is False:
             return parse_function(token)
 
         return ast.Identifier(token.location, str(token.text))
@@ -261,11 +263,22 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
     def parse_variable_declaration() -> ast.VariableDeclaration:
         var_token = consume("var")
-        identifier: ast.Identifier = parse_identifier()
+        identifier: ast.Identifier = parse_identifier(True)
+
+        type_name = None
+        if peek().text == ":":
+            consume(":")
+            type_name = parse_identifier().name
+
         consume("=")
         expr = parse_expression()
 
-        return ast.VariableDeclaration(var_token.location, identifier.name, expr)
+        if type_name is None:
+            return ast.VariableDeclaration(var_token.location, identifier.name, expr)
+
+        return ast.VariableDeclaration(
+            var_token.location, identifier.name, expr, BasicType(type_name)
+        )
 
     def parse_while() -> ast.While:
         while_token = consume("while")
@@ -298,9 +311,6 @@ def parse(tokens: list[Token]) -> ast.Expression:
         return ast.Block(first_expr.location, expressions, result)
 
     parsed_ast = parse_expression(True)
-    # print("--------")
-    # print(parsed_ast)
-    # print("--------")
 
     last_token = peek()
 

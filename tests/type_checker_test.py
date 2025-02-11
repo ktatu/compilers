@@ -56,6 +56,30 @@ def test_type_for_variable_declaration_is_unit() -> None:
     assert type_check("var x = 5") == Unit
 
 
+### TYPED VARIABLE DECLARATION ###
+def test_type_for_typed_var_declaration_is_unit() -> None:
+    assert type_check("var x: Int = 5") == Unit
+    assert type_check("var x: Int = 1 + 1") == Unit
+    assert type_check("var x: Bool = false") == Unit
+    assert type_check("var x: Bool = true") == Unit
+
+
+def test_type_check_fails_when_declared_type_does_not_match_initializer() -> None:
+    with pytest.raises(Exception) as e1:
+        type_check("var x: Int = true")
+
+    assert "declared type of a variable does not match type checked type" in str(
+        e1.value
+    )
+
+    with pytest.raises(Exception) as e2:
+        type_check("var x: Bool = 5")
+
+    assert "declared type of a variable does not match type checked type" in str(
+        e2.value
+    )
+
+
 ### IDENTIFIER ###
 def test_type_declared_identifier() -> None:
     assert type_check("var x = 5; x") == Int

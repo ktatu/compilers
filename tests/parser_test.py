@@ -3,6 +3,7 @@ from compiler.parser import parse
 from tests.tokenizer_test import L
 import compiler.ast as ast
 import pytest
+from compiler.types import BasicType
 
 
 ### + - ###
@@ -725,6 +726,50 @@ def test_parser_fails_when_var_declaration_not_in_top_level() -> None:
         str(exception.value)
         == f"{L}: attempting to declare a variable outside top-level scope"
     )
+
+
+def test_parser_fails_when_function_call_is_declared_variable() -> None:
+    with pytest.raises(Exception) as e:
+        parse(
+            [
+                Token("identifier", "var", L),
+                Token("identifier", "f", L),
+                Token("punctuation", "(", L),
+                Token("int_literal", "5", L),
+                Token("punctuation", ")", L),
+                Token("operator", "=", L),
+                Token("int_literal", "5", L),
+            ]
+        )
+
+    assert 'expected "="' in str(e.value)
+
+
+### TYPED VARIABLE DECLARATION ###
+def test_parser_parses_typed_variable_declaration_Int() -> None:
+    assert parse(
+        [
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("punctuation", ":", L),
+            Token("identifier", "Int", L),
+            Token("operator", "=", L),
+            Token("int_literal", "1", L),
+        ]
+    ) == ast.VariableDeclaration(L, "x", ast.Literal(L, 1), BasicType("Int"))
+
+
+def test_parser_parses_typed_variable_declaration_Bool() -> None:
+    assert parse(
+        [
+            Token("identifier", "var", L),
+            Token("identifier", "x", L),
+            Token("punctuation", ":", L),
+            Token("identifier", "Bool", L),
+            Token("operator", "=", L),
+            Token("identifier", "true", L),
+        ]
+    ) == ast.VariableDeclaration(L, "x", ast.Literal(L, True), BasicType("Bool"))
 
 
 ### MULTIPLE TOP LEVEL EXPRESSIONS ###

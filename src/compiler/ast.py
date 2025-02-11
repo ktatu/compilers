@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from compiler.tokenizer import Location
+from compiler.types import Type
 
 
 @dataclass
@@ -59,6 +60,7 @@ class Block(Expression):
 class VariableDeclaration(Expression):
     name: str
     initializer: Expression
+    declared_type: Type = None
 
 
 @dataclass

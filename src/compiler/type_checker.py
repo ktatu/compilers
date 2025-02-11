@@ -14,6 +14,11 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
 
     def add_symbol_type(node: ast.VariableDeclaration):
         symbol_type = typecheck(node.initializer, current_tab)
+        if node.declared_type is not None and node.declared_type != symbol_type:
+            raise Exception(
+                f"{node.location}. Type check error: declared type of a variable does not match type checked type"
+            )
+
         current_tab.locals[node.name] = symbol_type
 
     def add_top_level_func_types() -> None:
