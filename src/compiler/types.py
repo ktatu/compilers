@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Tuple
 
 
 @dataclass(frozen=True)
@@ -19,5 +18,5 @@ Unit = BasicType("Unit")
 
 @dataclass(frozen=True)
 class FunType(Type):
-    argument_types: Tuple[Type, ...]
+    argument_types: list[Type]
     return_type: Type

@@ -19,34 +19,32 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
     def add_top_level_func_types() -> None:
         for arithmetic_op in ["+", "-", "*", "/", "%"]:
             current_tab.locals[arithmetic_op] = FunType(
-                (
+                [
                     Int,
                     Int,
-                ),
+                ],
                 Int,
             )
 
         for comparison_op in ["<", "<=", ">", ">="]:
-            current_tab.locals[comparison_op] = FunType((Int, Int), Bool)
+            current_tab.locals[comparison_op] = FunType([Int, Int], Bool)
 
-        current_tab.locals["or"] = FunType((Bool, Bool), Bool)
-        current_tab.locals["and"] = FunType((Bool, Bool), Bool)
+        current_tab.locals["or"] = FunType([Bool, Bool], Bool)
+        current_tab.locals["and"] = FunType([Bool, Bool], Bool)
 
-        current_tab.locals["unary_not"] = FunType((Bool), Bool)
-        current_tab.locals["unary_-"] = FunType((Int), Int)
+        current_tab.locals["unary_not"] = FunType([Bool], Bool)
+        current_tab.locals["unary_-"] = FunType([Int], Int)
 
-        """ no support or tests for built-in-functions yet
-        current_tab.locals["print_int"] = FunType((Int), Unit)
-        current_tab.locals["print_bool"] = FunType((Bool), Unit)
-        current_tab.locals["read_int"] = FunType((Int), Unit)
-        """
+        current_tab.locals["print_int"] = FunType([Int], Unit)
+        current_tab.locals["print_bool"] = FunType([Bool], Unit)
+        current_tab.locals["read_int"] = FunType([Int], Unit)
 
-    def get_symbol(symbol: str, tab: SymTab = current_tab) -> Type:
+    def get_symbol_type(symbol: str, tab: SymTab = current_tab) -> Type:
         if symbol in tab.locals.keys():
             return tab.locals[symbol]
 
         if tab.parent is not None:
-            return get_symbol(symbol, tab.parent)
+            return get_symbol_type(symbol, tab.parent)
 
         return None
 
@@ -72,9 +70,9 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
         case ast.UnaryOp():
             t2 = typecheck(node.right, current_tab)
 
-            func_type: FunType = get_symbol("unary_" + node.op)
+            func_type: FunType = get_symbol_type("unary_" + node.op)
 
-            if (t2) != func_type.argument_types:
+            if [t2] != func_type.argument_types:
                 raise Exception(
                     f"{node.location}. Type check error: value in unary operation was not bool, {t2}"
                 )
@@ -93,7 +91,7 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
             return Unit
 
         case ast.Identifier():
-            identifier_type = get_symbol(node.name)
+            identifier_type = get_symbol_type(node.name)
             if identifier_type is None:
                 raise Exception(
                     f"{node.location}. Type check error: could not find type for symbol {node.name}"
@@ -140,19 +138,41 @@ def typecheck(node: ast.Expression, sym_tab: SymTab = None) -> Type:
                     return Unit
                 return Bool
             else:
-                func_type = get_symbol(node.op)
+                func_type = get_symbol_type(node.op)
 
             if func_type is None:
                 raise Exception(
                     f"{node.location}. Type check error: unsupported BinaryOp, {node.op}"
                 )
 
-            if (t1, t2) != func_type.argument_types:
+            if [t1, t2] != func_type.argument_types:
                 raise Exception(
                     f"{node.location}. Type check error: expected BinaryOp argument types {func_type.argument_types}, received {t1, t2}"
                 )
 
             return func_type.return_type
+
+        case ast.FunctionCall():
+            func_type = get_symbol_type(node.name)
+
+            expr_types: list[Type] = []
+            for expr in node.arguments:
+                expr_types.append(typecheck(expr))
+
+            # expr_types = tuple(expr_types)
+            print("---")
+            print(expr_types)
+            print("---")
+            print(func_type.argument_types)
+            print(type(func_type.argument_types))
+            print("---")
+
+            if expr_types != func_type.argument_types:
+                raise Exception(
+                    f"{node.location}. Type check error: types of function arguments do not match expected types"
+                )
+
+            return Unit
 
         case ast.Conditional():
             t1 = typecheck(node.cond_if, current_tab)
